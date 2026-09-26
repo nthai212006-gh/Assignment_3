@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>RoomPulse &bull; Quản Lý Phòng Họp</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/app.css}" rel="stylesheet"/>
+    <link th:href="@{/css/list.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Header -->
+<nav class="app-navbar">
+    <div class="container-xl">
+        <div class="navbar-inner d-flex align-items-center justify-content-between">
+            <a th:href="@{/bookings}" class="brand-link">
+                <div class="brand-logo-badge">
+                    <i class="bi bi-calendar2-check-fill"></i>
+                </div>
+                <span class="brand-name">RoomPulse</span>
+                <span class="brand-tag">Workspace</span>
+                <span class="live-pill"><span class="live-dot"></span>Online</span>
+            </a>
+
+            <div>
+                <a th:href="@{/bookings/new}" class="btn-create-booking">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>Đặt phòng mới</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container-fluid px-3 px-xl-4 my-3">
+
+    <!-- Flash Alerts -->
+    <div th:if="${successMessage}" class="alert-toast success" role="alert">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div class="flex-grow-1" th:text="${successMessage}">Thao tác thành công.</div>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert-toast danger" role="alert">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+        <div class="flex-grow-1" th:text="${errorMessage}">Đã xảy ra lỗi.</div>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
+
+    <div class="workspace-layout-push" id="workspaceLayout">
+        
+        <div class="workspace-main-area">
+            
+            <!-- Metrics -->
+            <section class="metrics-strip">
+                <div class="stat-card indigo">
+                    <div>
+                        <div class="stat-label">Tổng Lượt Đặt</div>
+                        <div class="stat-val font-mono" id="stat-total" th:text="${bookings.size()}">0</div>
+                        <span class="stat-subtext">Toàn bộ hồ sơ</span>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-range"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card emerald">
+                    <div>
+                        <div class="stat-label">Đang Xác Nhận</div>
+                        <div class="stat-val font-mono text-success" id="stat-confirmed"
+                             th:text="${bookings.?[status.name() == 'CONFIRMED'].size()}">0</div>
+                        <span class="stat-subtext text-success">Đang giữ phòng</span>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card coral">
+                    <div>
+                        <div class="stat-label">Đã Hủy Lịch</div>
+                        <div class="stat-val font-mono text-muted" id="stat-cancelled"
+                             th:text="${bookings.?[status.name() == 'CANCELLED'].size()}">0</div>
+                        <span class="stat-subtext text-muted">Lịch sử hủy</span>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-dash-circle"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card amber">
+                    <div>
+                        <div class="stat-label">Thời Lượng Tối Đa</div>
+                        <div class="stat-val font-mono">120<span style="font-size: 0.85rem; font-weight: 600; color: #b45309;">p</span></div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-stopwatch"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Table Section -->
+            <section class="workspace-panel">
+                
+                <div class="workspace-toolbar">
+                    <div class="filter-tabs">
+                        <button type="button" class="filter-pill active" onclick="setFilter('ALL', this)">
+                            <i class="bi bi-grid-fill"></i>
+                            <span>Tất cả</span>
+                            <span class="badge bg-white text-dark border ms-1" th:text="${bookings.size()}">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setFilter('CONFIRMED', this)">
+                            <i class="bi bi-check2"></i>
+                            <span>Hiệu lực</span>
+                            <span class="badge bg-white text-dark border ms-1" th:text="${bookings.?[status.name() == 'CONFIRMED'].size()}">0</span>
+                        </button>
+                        <button type="button" class="filter-pill" onclick="setFilter('CANCELLED', this)">
+                            <i class="bi bi-x"></i>
+                            <span>Đã hủy</span>
+                            <span class="badge bg-white text-dark border ms-1" th:text="${bookings.?[status.name() == 'CANCELLED'].size()}">0</span>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-actions">
+                        <div class="search-box">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="search-input" id="tableSearchInput" placeholder="Tìm theo tên, phòng, mục đích..." onkeyup="filterSearch()"/>
+                        </div>
+                        <button type="button" class="btn-policy-drawer-trigger" id="toolbarPolicyBtn" onclick="togglePolicyDrawer()" title="Xem quy định đặt phòng">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Quy định</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-responsive">
+                    <table class="workspace-table" id="bookingTable">
+                        <thead>
+                        <tr>
+                            <th scope="col" style="width: 45px; text-align: center;">Mã</th>
+                            <th scope="col" style="width: 90px;">Phòng</th>
+                            <th scope="col" style="width: 160px; white-space: nowrap;">Người Đặt</th>
+                            <th scope="col" style="width: 175px; white-space: nowrap;">Thời Gian Họp</th>
+                            <th scope="col">Mục Đích</th>
+                            <th scope="col" style="width: 110px; text-align: center; white-space: nowrap;">Trạng Thái</th>
+                            <th scope="col" class="text-end" style="width: 110px; white-space: nowrap;">Thao Tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Empty State -->
+                        <tr th:if="${bookings.empty}" id="emptyRow">
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-inbox text-muted fs-1 d-block mb-2"></i>
+                                <div class="fw-bold text-dark">Chưa có lịch đặt phòng nào</div>
+                                <div class="small text-muted mb-3">Nhấn nút bên dưới để tạo cuộc họp đầu tiên.</div>
+                                <a th:href="@{/bookings/new}" class="btn-create-booking">
+                                    <i class="bi bi-plus-lg"></i> Đặt phòng ngay
+                                </a>
+                            </td>
+                        </tr>
+
+                        <!-- Records -->
+                        <tr th:each="b : ${bookings}"
+                            class="booking-row"
+                            th:attr="data-status=${b.status.name()}"
+                            th:classappend="${b.status.name() == 'CANCELLED'} ? 'opacity-50' : ''">
+                            
+                            <td class="text-center" style="width: 45px;">
+                                <span class="font-mono text-muted fw-bold" th:text="'#' + ${b.id}">#1</span>
+                            </td>
+                            <td style="width: 90px;">
+                                <span class="room-tag">
+                                    <i class="bi bi-door-open-fill"></i>
+                                    <span th:text="${b.roomName}">A101</span>
+                                </span>
+                            </td>
+                            <td class="text-nowrap" style="width: 160px;">
+                                <div class="user-identity">
+                                    <div class="user-avatar-tag"
+                                         th:text="${#strings.length(b.bookedBy) > 0 ? #strings.substring(b.bookedBy, 0, 1).toUpperCase() : 'U'}">
+                                        N
+                                    </div>
+                                    <span class="fw-bold text-dark text-nowrap" th:text="${b.bookedBy}">Nguyen Van A</span>
+                                </div>
+                            </td>
+                            <td class="text-nowrap" style="width: 175px;">
+                                <div class="time-cell">
+                                    <i class="bi bi-clock text-primary"></i>
+                                    <span th:text="${#temporals.format(b.startAt, 'HH:mm')}">09:00</span>
+                                    <span class="text-muted">&ndash;</span>
+                                    <span th:text="${#temporals.format(b.endAt, 'HH:mm')}">10:30</span>
+                                    <span class="tag-duration"
+                                          th:text="${T(java.time.Duration).between(b.startAt, b.endAt).toMinutes()} + 'p'">90p</span>
+                                </div>
+                                <div class="time-date-badge">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    <span th:text="${#temporals.format(b.startAt, 'dd/MM/yyyy')}">27/09/2026</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 320px; font-weight: 500;"
+                                     th:text="${b.purpose}" th:title="${b.purpose}">
+                                    Họp đồ án tốt nghiệp
+                                </div>
+                            </td>
+                            <td class="text-center text-nowrap" style="width: 110px;">
+                                <span th:if="${b.status.name() == 'CONFIRMED'}" class="badge-status confirmed">
+                                    <span class="dot"></span>
+                                    CONFIRMED
+                                </span>
+                                <span th:if="${b.status.name() == 'CANCELLED'}" class="badge-status cancelled">
+                                    <span class="dot"></span>
+                                    CANCELLED
+                                </span>
+                            </td>
+                            <td class="text-end text-nowrap" style="width: 110px;">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <!-- Edit -->
+                                    <a th:if="${b.status.name() == 'CONFIRMED'}"
+                                       th:href="@{/bookings/{id}/edit(id=${b.id})}"
+                                       class="btn-act-edit"
+                                       title="Sửa lịch">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </a>
+                                    <span th:unless="${b.status.name() == 'CONFIRMED'}"
+                                          class="text-muted small px-1">Đã hủy</span>
+
+                                    <!-- Cancel (POST) -->
+                                    <form th:if="${b.status.name() == 'CONFIRMED'}"
+                                          th:action="@{/bookings/{id}/cancel(id=${b.id})}"
+                                          method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Xác nhận hủy lịch đặt #' + [[${b.id}]] + '?\n\nChính sách: Chỉ được hủy trước giờ bắt đầu tối thiểu 30 phút.');">
+                                        <button type="submit" class="btn-act-cancel" title="Hủy lịch">
+                                            <i class="bi bi-x-circle"></i> Hủy
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Policy Drawer -->
+        <aside class="workspace-policy-drawer" id="policyDrawer" aria-label="Quy định đặt phòng">
+            <div class="policy-drawer-inner">
+                <div class="policy-drawer-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="policy-icon-badge">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="policy-drawer-title mb-0">Quy Định Đặt Phòng</h5>
+                            <p class="policy-drawer-sub mb-0">Hệ thống tự động kiểm tra khi gửi đơn</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close-drawer" onclick="togglePolicyDrawer(false)" aria-label="Đóng bảng quy định" title="Đóng bảng quy định">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="policy-drawer-body">
+                    <div class="policy-intro-banner">
+                        <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
+                        <span>Tất cả 6 quy định cốt lõi bên dưới được hệ thống RoomPulse tự động kiểm tra khi bạn gửi hoặc chỉnh sửa đơn đặt phòng.</span>
+                    </div>
+
+                    <div class="policy-vertical-list">
+                        <!-- Quy định 1 -->
+                        <div class="policy-card-item">
+                            <div class="policy-num-chip num-blue">01</div>
+                            <div class="policy-text-wrap">
+                                <div class="policy-name">Khoảng thời gian</div>
+                                <div class="policy-detail">Thời gian kết thúc bắt buộc phải diễn ra sau thời gian bắt đầu.</div>
+                            </div>
+                        </div>
+
+                        <!-- Quy định 2 -->
+                        <div class="policy-card-item">
+                            <div class="policy-num-chip num-indigo">02</div>
+                            <div class="policy-text-wrap">
+                                <div class="policy-name">Thời lượng tối đa</div>
+                                <div class="policy-detail">Mỗi lượt đặt phòng tối đa 120 phút để nhường phòng cho người khác.</div>
+                            </div>
+                        </div>
+
+                        <!-- Quy định 3 -->
+                        <div class="policy-card-item">
+                            <div class="policy-num-chip num-purple">03</div>
+                            <div class="policy-text-wrap">
+                                <div class="policy-name">Thời điểm đặt</div>
+                                <div class="policy-detail">Thời gian bắt đầu không được chọn ở thời điểm quá khứ.</div>
+                            </div>
+                        </div>
+
+                        <!-- Quy định 4 -->
+                        <div class="policy-card-item">
+                            <div class="policy-num-chip num-amber">04</div>
+                            <div class="policy-text-wrap">
+                                <div class="policy-name">Chống trùng phòng</div>
+                                <div class="policy-detail">Không được đặt cùng phòng bị trùng khung giờ với lịch đã xác nhận.</div>
+                            </div>
+                        </div>
+
+                        <!-- Quy định 5 -->
+                        <div class="policy-card-item">
+                            <div class="policy-num-chip num-emerald">05</div>
+                            <div class="policy-text-wrap">
+                                <div class="policy-name">Hạn mức cá nhân</div>
+                                <div class="policy-detail">Mỗi người chỉ được phép có tối đa 2 lịch đặt đang hiệu lực cùng lúc.</div>
+                            </div>
+                        </div>
+
+                        <!-- Quy định 6 -->
+                        <div class="policy-card-item">
+                            <div class="policy-num-chip num-rose">06</div>
+                            <div class="policy-text-wrap">
+                                <div class="policy-name">Quy định hủy lịch</div>
+                                <div class="policy-detail">Chỉ được hủy trước giờ bắt đầu tối thiểu 30 phút và giữ lại lịch sử.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="policy-drawer-footer">
+                    <button type="button" class="btn-close-drawer-action" onclick="togglePolicyDrawer(false)">
+                        <i class="bi bi-chevron-bar-right"></i> Ẩn bảng quy định
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/list.js}"></script>
+</body>
+</html>
