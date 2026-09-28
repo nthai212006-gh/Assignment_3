@@ -19,11 +19,9 @@ public class BookingRequest {
     private String bookedBy;
 
     @NotNull(message = "Thời gian bắt đầu không được để trống")
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime startAt;
 
     @NotNull(message = "Thời gian kết thúc không được để trống")
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime endAt;
 
     @NotBlank(message = "Mục đích sử dụng không được để trống")
