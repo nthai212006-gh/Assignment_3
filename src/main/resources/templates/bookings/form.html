@@ -16,6 +16,7 @@
 
     <!-- Custom CSS -->
     <link th:href="@{/css/app.css}" rel="stylesheet"/>
+    <link th:href="@{/css/flatpickr.min.css}" rel="stylesheet"/>
     <link th:href="@{/css/form.css}" rel="stylesheet"/>
 </head>
 <body>
@@ -132,13 +133,13 @@
                         <div class="col-md-6">
                             <label for="startAt" class="form-field-label">
                                 <span>Bắt đầu <span class="text-danger">*</span></span>
-                                <span class="font-mono text-muted" style="font-size: 0.68rem;">dd/mm/yyyy</span>
+                                <span class="font-mono text-muted" style="font-size: 0.68rem;">dd/mm/yyyy HH:mm</span>
                             </label>
                             <div class="input-wrap">
                                 <i class="bi bi-clock field-icon"></i>
-                                <input type="datetime-local" id="startAt" th:field="*{startAt}"
-                                       lang="vi-VN"
+                                <input type="text" id="startAt" th:field="*{startAt}"
                                        placeholder="dd/mm/yyyy --:--"
+                                       autocomplete="off"
                                        class="input-box font-mono"
                                        th:classappend="${#fields.hasErrors('startAt')} ? 'is-invalid' : ''"/>
                             </div>
@@ -152,13 +153,13 @@
                         <div class="col-md-6">
                             <label for="endAt" class="form-field-label">
                                 <span>Kết thúc <span class="text-danger">*</span></span>
-                                <span class="font-mono text-muted" style="font-size: 0.68rem;">dd/mm/yyyy</span>
+                                <span class="font-mono text-muted" style="font-size: 0.68rem;">dd/mm/yyyy HH:mm</span>
                             </label>
                             <div class="input-wrap">
                                 <i class="bi bi-clock-history field-icon"></i>
-                                <input type="datetime-local" id="endAt" th:field="*{endAt}"
-                                       lang="vi-VN"
+                                <input type="text" id="endAt" th:field="*{endAt}"
                                        placeholder="dd/mm/yyyy --:--"
+                                       autocomplete="off"
                                        class="input-box font-mono"
                                        th:classappend="${#fields.hasErrors('endAt')} ? 'is-invalid' : ''"/>
                             </div>
@@ -202,5 +203,33 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/flatpickr.min.js}"></script>
+<script th:src="@{/js/flatpickr.vn.js}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const commonConfig = {
+            enableTime: true,
+            dateFormat: "d/m/Y H:i",
+            time_24hr: true,
+            allowInput: true,
+            locale: "vn",
+            minuteIncrement: 5,
+            disableMobile: true
+        };
+
+        const startPicker = flatpickr("#startAt", {
+            ...commonConfig,
+            onChange: function (selectedDates) {
+                if (selectedDates.length > 0) {
+                    endPicker.set("minDate", selectedDates[0]);
+                }
+            }
+        });
+
+        const endPicker = flatpickr("#endAt", {
+            ...commonConfig
+        });
+    });
+</script>
 </body>
 </html>

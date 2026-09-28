@@ -24,6 +24,48 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
+    @org.springframework.web.bind.annotation.InitBinder
+    public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+        binder.registerCustomEditor(java.time.LocalDateTime.class, new java.beans.PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) throws IllegalArgumentException {
+                if (text == null || text.trim().isEmpty()) {
+                    setValue(null);
+                    return;
+                }
+                String trimmed = text.trim();
+                String[] patterns = {
+                    "yyyy-MM-dd'T'HH:mm",
+                    "yyyy-MM-dd'T'HH:mm:ss",
+                    "dd/MM/yyyy HH:mm",
+                    "dd/MM/yyyy'T'HH:mm",
+                    "dd/MM/yyyy HH:mm:ss",
+                    "yyyy-MM-dd HH:mm"
+                };
+                for (String p : patterns) {
+                    try {
+                        setValue(java.time.LocalDateTime.parse(trimmed, java.time.format.DateTimeFormatter.ofPattern(p)));
+                        return;
+                    } catch (Exception ignored) {
+                    }
+                }
+                try {
+                    setValue(java.time.LocalDateTime.parse(trimmed));
+                    return;
+                } catch (Exception ignored) {
+                }
+                throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ. Vui lòng nhập theo định dạng dd/mm/yyyy HH:mm");
+            }
+
+            @Override
+            public String getAsText() {
+                java.time.LocalDateTime value = (java.time.LocalDateTime) getValue();
+                return (value != null ? value.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "");
+            }
+        });
+    }
+
+
     @GetMapping
     public String list(Model model) {
         model.addAttribute("bookings", bookingService.findAll());
