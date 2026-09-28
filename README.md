@@ -10,7 +10,7 @@
 1. Cài đặt extension pack: **Extension Pack for Java** và **Spring Boot Extension Pack** trên VS Code.
 2. Mở file [BookingApplication.java](file:///c:/Users/T14%20GEN2/Documents/LAB_3/src/main/java/com/example/booking/BookingApplication.java).
 3. Nhấn vào nút **Run** hoặc **Debug** (hoặc phím tắt **F5**).
-4. Mở trình duyệt và truy cập: [http://localhost:8081](http://localhost:8081) (tự động chuyển hướng về `/bookings`).
+4. Mở trình duyệt và truy cập: [http://localhost:8080](http://localhost:8080) (tự động chuyển hướng về `/bookings`).
 
 ### Cách 2: Sử dụng Terminal trong VS Code
 Mở Terminal (`Ctrl + ` `) và chạy lệnh:
@@ -42,7 +42,7 @@ src/main/java/com/example/booking/
     └── HomeController.java               # Điều hướng "/" về "/bookings"
 
 src/main/resources/
-├── application.properties                # Cấu hình cổng 8081, tắt thymeleaf cache
+├── application.properties                # Cấu hình cổng 8080, tắt thymeleaf cache
 └── templates/bookings/
     ├── list.html                         # Giao diện danh sách đặt phòng hiện đại
     └── form.html                         # Giao diện tạo mới / chỉnh sửa kèm inline error
